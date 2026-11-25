@@ -252,3 +252,50 @@ h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em}
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 [hidden] { display: none !important; }
+
+/* ===== Роли, назначение, пустые состояния ===== */
+.role-select {
+  padding: 6px 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.35);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.role-select:focus { outline: none; border-color: #7c5cff; }
+.admin-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.admin-actions .btn { padding: 5px 12px; font-size: 12px; }
+.admin-empty {
+  padding: 18px;
+  text-align: center;
+  color: #8b93a7;
+  font-size: 13px;
+  border: 1px dashed rgba(255,255,255,.14);
+  border-radius: 12px;
+}
+.readonly-note {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(250,200,60,.10);
+  border-left: 3px solid #fbbf24;
+  color: #fbbf24;
+  font-size: 13px;
+}
+.admin-who { font-size: 12px; color: #8b93a7; margin: 0 0 10px; }
+.role-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.role-badge.tech   { background: rgba(124,92,255,.22); color: #a78bfa; }
+.role-badge.head   { background: rgba(34,211,238,.18); color: #22d3ee; }
+.role-badge.deputy { background: rgba(52,211,153,.18); color: #34d399; }
+.role-badge.staff  { background: rgba(139,147,167,.20); color: #b6bdcc; }
+.role-badge.user   { background: rgba(139,147,167,.14); color: #8b93a7; }
