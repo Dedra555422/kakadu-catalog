@@ -1,9 +1,10 @@
 /* OKG audit. Журнал аудита в стиле Discord: читает "AdminLog", пишет события вручную. */
 (function(){
 "use strict";
-var S={rows:[],profiles:{},filter:"",actor:"",loaded:false};
+var S={rows:[],profiles:{},filter:"",actor:"",loaded:false,loading:false};
 function cl(){return window.sb||null;}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+
 var ACT={
  "profiles.insert":"Создан профиль","profiles.update":"Изменён профиль","profiles.delete":"Удалён профиль",
  "role.changed":"Смена роли","status.changed":"Смена статуса",
@@ -29,12 +30,14 @@ var KIND={
 function actLabel(a){return ACT[a]||a||"—";}
 function iconOf(a){return ICON[a]||"•";}
 function kindOf(a){return KIND[a]||"update";}
+
 function canSee(){
  var R=window.OKG_ROLES; if(!R)return false;
  var p=window.OKG_ADMIN&&window.OKG_ADMIN.state&&window.OKG_ADMIN.state.profile;
  if(!p)return false;
  var r=R.roleOf(p); return r==="tech"||r==="head"||r==="deputy";
 }
+
 async function log(action,target){
  var c=cl();if(!c)return;
  try{
@@ -44,19 +47,25 @@ async function log(action,target){
   await c.from("AdminLog").insert({id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(16).slice(2)),actorId:uid,action:action,target:target||""});
  }catch(e){console.warn("audit:",e&&e.message);}
 }
+
 async function load(){
+ if(S.loading)return;
  var c=cl();if(!c)return;
- var r=await c.from("AdminLog").select("*").order("createdAt",{ascending:false}).limit(300);
- if(r.error){console.warn("audit load:",r.error.message);return;}
- S.rows=r.data||[];
- var ids={};S.rows.forEach(function(x){if(x.actorId)ids[x.actorId]=1;});
- var keys=Object.keys(ids);
- if(keys.length){
-  var p=await c.from("profiles").select("id,email,nickname,role").in("id",keys);
-  if(!p.error)(p.data||[]).forEach(function(x){S.profiles[x.id]=x;});
- }
- S.loaded=true; fillActors(); render();
+ S.loading=true;
+ try{
+  var r=await c.from("AdminLog").select("*").order("createdAt",{ascending:false}).limit(300);
+  if(r.error){console.warn("audit load:",r.error.message);return;}
+  S.rows=r.data||[];
+  var ids={};S.rows.forEach(function(x){if(x.actorId)ids[x.actorId]=1;});
+  var keys=Object.keys(ids);
+  if(keys.length){
+   var p=await c.from("profiles").select("id,email,nickname,role").in("id",keys);
+   if(!p.error)(p.data||[]).forEach(function(x){S.profiles[x.id]=x;});
+  }
+  S.loaded=true; fillActors(); render();
+ }finally{S.loading=false;}
 }
+
 function who(id){
  if(!id)return "Система";
  var p=S.profiles[id];
@@ -101,6 +110,7 @@ function visible(){
   return (actLabel(x.action)+" "+x.action+" "+(x.target||"")+" "+who(x.actorId)).toLowerCase().indexOf(q)>=0;
  });
 }
+
 function render(){
  var b=document.getElementById("auditList");if(!b)return;
  var rows=visible();
@@ -121,12 +131,13 @@ function render(){
   var t=esc(x.target||"");
   if(t.length>120)t=t.slice(0,120)+"…";
   var kind=kindOf(x.action);
+  var role=roleOf(x.actorId);
   out+='<div class="dc-msg dc-'+kind+'">'
-    +'<div class="dc-ava dc-ava-'+esc(roleOf(x.actorId))+'">'+esc(initials(x.actorId))+'</div>'
+    +'<div class="dc-ava dc-ava-'+esc(role)+'">'+esc(initials(x.actorId))+'</div>'
     +'<div class="dc-body">'
       +'<div class="dc-head">'
         +'<span class="dc-name">'+esc(who(x.actorId))+'</span>'
-        +'<span class="dc-badge dc-badge-'+esc(roleOf(x.actorId))+'">'+esc(roleOf(x.actorId))+'</span>'
+        +'<span class="dc-badge dc-badge-'+esc(role)+'">'+esc(role)+'</span>'
         +'<span class="dc-time">'+esc(fmt(x.createdAt))+'</span>'
       +'</div>'
       +'<div class="dc-text"><span class="dc-ico">'+iconOf(x.action)+'</span>'+esc(actLabel(x.action))+(t?' <span class="dc-target">'+t+'</span>':'')+'</div>'
@@ -136,6 +147,7 @@ function render(){
  });
  b.innerHTML=out;
 }
+
 function actors(){
  var seen={},out=[];
  S.rows.forEach(function(x){ if(x.actorId&&!seen[x.actorId]){seen[x.actorId]=1;out.push(x.actorId);} });
@@ -150,6 +162,7 @@ function fillActors(){
  });
  s.innerHTML=o;
 }
+
 function csv(){
  var rows=visible();
  var head="Дата;Кто;Действие;Код;Объект\n";
@@ -166,6 +179,7 @@ function csv(){
  setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
  log("audit.export",rows.length+" записей");
 }
+
 function init(){
  if(window.__okgAudit)return;window.__okgAudit=1;
  document.addEventListener("click",function(e){
@@ -183,22 +197,19 @@ function init(){
   var t=e.target;
   if(t&&t.id==="auditActor"){S.actor=t.value;render();}
  });
+ // Автозагрузка: как только панель видима и есть права
+ function tryLoad(){
+  var panel=document.getElementById("auditPanel");
+  if(!panel)return;
+  if(panel.closest("[hidden]"))return;
+  if(!canSee())return;
+  if(S.loaded||S.loading)return;
+  load();
+ }
+ setInterval(tryLoad,1500);
+ document.addEventListener("click",function(){setTimeout(tryLoad,500);});
+ setTimeout(tryLoad,1200);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 window.OKG_AUDIT={load:load,log:log,render:render,state:S,canSee:canSee,exportCsv:csv};
-})();
-
-/* Автозагрузка журнала: как только админка открыта и пользователь имеет доступ */
-(function(){
-  function tryLoad(){
-    var panel=document.getElementById("auditPanel");
-    if(!panel)return;
-    if(panel.closest("[hidden]"))return;
-    if(!canSee())return;
-    if(S.loaded)return;
-    load();
-  }
-  setInterval(tryLoad, 1500);
-  document.addEventListener("click", function(){ setTimeout(tryLoad, 400); });
-  setTimeout(tryLoad, 1200);
 })();
