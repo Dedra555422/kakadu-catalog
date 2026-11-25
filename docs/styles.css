@@ -299,3 +299,103 @@ h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em}
 .role-badge.deputy { background: rgba(52,211,153,.18); color: #34d399; }
 .role-badge.staff  { background: rgba(139,147,167,.20); color: #b6bdcc; }
 .role-badge.user   { background: rgba(139,147,167,.14); color: #8b93a7; }
+
+
+/* ===== Журнал аудита в стиле Discord ===== */
+#auditList{
+  background:#1e1f22;
+  border-radius:12px;
+  padding:8px 0 12px;
+  max-height:520px;
+  overflow-y:auto;
+  font-family:"gg sans","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  scrollbar-width:thin;
+  scrollbar-color:#1a1b1e #2b2d31;
+}
+#auditList::-webkit-scrollbar{width:8px}
+#auditList::-webkit-scrollbar-track{background:#2b2d31}
+#auditList::-webkit-scrollbar-thumb{background:#1a1b1e;border-radius:4px}
+
+.dc-day{
+  position:sticky;top:0;z-index:2;
+  display:flex;align-items:center;gap:8px;
+  padding:8px 16px 6px;
+  background:#1e1f22;
+}
+.dc-day::before,.dc-day::after{content:"";height:1px;flex:1;background:#3f4147}
+.dc-day span{
+  font-size:11px;font-weight:700;letter-spacing:.02em;
+  color:#949ba4;padding:0 6px;white-space:nowrap;
+}
+
+.dc-msg{
+  display:flex;gap:14px;
+  padding:6px 16px 6px 14px;
+  position:relative;
+  transition:background .12s ease;
+}
+.dc-msg:hover{background:rgba(4,4,5,.07)}
+.dc-msg::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  border-radius:0 3px 3px 0;background:transparent;transition:background .12s;
+}
+.dc-msg:hover::before{background:#5865f2}
+.dc-create::before{background:#23a55a}
+.dc-delete::before{background:#da373c}
+.dc-update::before{background:#f0b232}
+.dc-join::before{background:#5865f2}
+.dc-leave::before{background:#80848e}
+
+.dc-ava{
+  flex:0 0 40px;width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;
+  font-size:14px;font-weight:700;color:#fff;
+  background:#5865f2;letter-spacing:.02em;
+  box-shadow:0 0 0 2px #1e1f22,0 0 0 3px rgba(255,255,255,.06);
+}
+.dc-ava-tech{background:linear-gradient(135deg,#ed4245,#a1282b)}
+.dc-ava-head{background:linear-gradient(135deg,#f0b232,#b07d13)}
+.dc-ava-deputy{background:linear-gradient(135deg,#5865f2,#3b45b8)}
+.dc-ava-senior{background:linear-gradient(135deg,#23a55a,#146b39)}
+.dc-ava-staff{background:linear-gradient(135deg,#3ba55d,#1f6b39)}
+.dc-ava-user{background:linear-gradient(135deg,#80848e,#4e5058)}
+
+.dc-body{min-width:0;flex:1}
+.dc-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px}
+.dc-name{font-size:15px;font-weight:600;color:#f2f3f5;line-height:1.2}
+.dc-badge{
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  padding:2px 6px;border-radius:4px;color:#fff;background:#5865f2;
+}
+.dc-badge-tech{background:#ed4245}
+.dc-badge-head{background:#f0b232;color:#1e1f22}
+.dc-badge-deputy{background:#5865f2}
+.dc-badge-senior,.dc-badge-staff{background:#23a55a}
+.dc-badge-user{background:#4e5058}
+.dc-time{font-size:11px;color:#949ba4;margin-left:auto}
+
+.dc-text{font-size:14px;color:#dbdee1;line-height:1.35;word-break:break-word}
+.dc-ico{margin-right:6px;opacity:.9}
+.dc-target{
+  color:#00a8fc;background:rgba(0,168,252,.1);
+  padding:1px 5px;border-radius:4px;font-weight:500;
+}
+.dc-code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11px;color:#6d6f78;margin-top:3px;
+}
+
+.dc-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:40px 20px;text-align:center;color:#949ba4;
+}
+.dc-empty-ico{font-size:34px;margin-bottom:10px;opacity:.7}
+.dc-empty-t{font-size:15px;font-weight:600;color:#dbdee1;margin-bottom:4px}
+.dc-empty-s{font-size:13px;max-width:340px;line-height:1.4}
+
+@media (max-width:640px){
+  .dc-msg{gap:10px;padding:6px 10px}
+  .dc-ava{flex:0 0 34px;width:34px;height:34px;font-size:12px}
+  .dc-name{font-size:14px}
+  .dc-text{font-size:13px}
+}
