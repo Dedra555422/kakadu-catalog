@@ -129,7 +129,7 @@
     </div>
     <div class="panel">
       <h3>Материалы</h3>
-      <div id="adminMaterials"></div>
+      <div id="adminMaterials"></div></div><div class="panel" id="auditPanel"><h3>Журнал аудита <span class="muted" id="auditCount" style="font-weight:400;font-size:13px"></span></h3><p class="muted">Кто и когда менял роли, статусы, заявки и материалы. Записи ведутся автоматически.</p><div class="audit-controls"><input id="auditSearch" type="search" placeholder="Поиск по действию, объекту, администратору…" autocomplete="off"><select id="auditActor"></select><button class="btn btn-ghost" type="button" data-audit-refresh>Обновить</button><button class="btn btn-ghost" type="button" data-audit-export>Экспорт CSV</button></div><div id="auditList"></div></div>
     </div>
   </section>
 </main>
@@ -181,6 +181,6 @@
 <script src="roles.js?v=4"></script>
 <script src="admin-roles.js?v=4"></script>
 <script src="admin-materials.js?v=4"></script>
-<script src="admin-users.js?v=4"></script>
+<script src="admin-users.js?v=4"></script><script src="audit.js?v=1"></script>
 </body>
 </html>
