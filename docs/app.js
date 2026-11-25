@@ -1,7 +1,7 @@
 /* модалка скрыта с самого начала, независимо от CSS */
 (function () {
   var m = document.getElementById('modal');
-  if (m) m.style.display = 'none';
+  if (m) { m.hidden = true; m.style.display = ''; }
 })();
 
 /* BLACK VAULT — статический архив */
@@ -55,12 +55,12 @@ function openModal(item) {
   $('#mTitle').textContent = item.title;
   $('#mBody').textContent = item.body;
   $('#mLink').href = item.link || '#';
-  $('#modal').hidden = false;
+  $('#modal').hidden = false; $('#modal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-  $('#modal').hidden = true;
+  $('#modal').hidden = true; $('#modal').style.display = '';
   document.body.style.overflow = '';
 }
 
