@@ -1,6 +1,6 @@
 /* OKG — клиент Supabase и логика аккаунтов */
 const SUPABASE_URL = 'https://shbohipthoifdrcpmjtp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYm9oaXB0aG9pZmRyY3BtanRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwODQ2OTQsImV4cCI6MjA3OTY2MDY5NH0.PLACEHOLDER';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYm9oaXB0aG9pZmRyY3BtanRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2MTE5MTUsImV4cCI6MjExMTE4NzkxNX0.UxyoxuAZKviMC76bGA4NdpKzJIxdN9cK_AqLNfofqUo';
 
 let sb = null, currentUser = null, currentProfile = null;
 
@@ -296,4 +296,8 @@ window.addEventListener('DOMContentLoaded', () => {
   if (sw1) sw1.onclick = (e) => { e.preventDefault(); showAuthModal('register'); };
   const sw2 = document.getElementById('toLogin');
   if (sw2) sw2.onclick = (e) => { e.preventDefault(); showAuthModal('login'); };
+  const cabBtn = document.getElementById('cabinetNavBtn');
+  if (cabBtn) cabBtn.onclick = (e) => { e.preventDefault(); openCabinet(); };
+  const admBtn = document.getElementById('adminNavBtn');
+  if (admBtn) admBtn.onclick = (e) => { e.preventDefault(); openAdmin(); };
 });
