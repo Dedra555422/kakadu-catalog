@@ -1,70 +1,89 @@
-"use client";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import VaultHeader from "@/components/VaultHeader";
+import AdminUserRow from "./AdminUserRow";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useSession, signIn } from "next-auth/react";
+export default async function AdminPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
-export default function AdminPage() {
-  const { data: session } = useSession();
-  const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [category, setCategory] = useState("general");
-  const [basePrice, setBasePrice] = useState(0);
-  const [variantsText, setVariantsText] = useState("Стандарт\nПро +300");
-  const [msg, setMsg] = useState("");
+  const discordId = (session.user as any).discordId;
+  const me = discordId
+    ? await prisma.user.findUnique({ where: { discordId } })
+    : null;
 
-  if (!session) {
-    return (
-      <div className="space-y-3">
-        <p className="text-gray-600">Админка доступна после входа.</p>
-        <button onClick={() => signIn("google")} className="rounded bg-black px-4 py-2 text-white">
-          Войти через Google
-        </button>
-      </div>
-    );
-  }
+  if (!me) redirect("/pending");
+  if (me.role !== "OWNER" && me.role !== "ADMIN") redirect("/vault");
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setMsg("");
-    const variants = variantsText
-      .split("\n")
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const m = line.match(/^(.*?)\s*\+(\d+)$/);
-        return m ? { name: m[1].trim(), priceDiff: Number(m[2]) } : { name: line, priceDiff: 0 };
-      });
+  const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
+  const logs = await prisma.adminLog.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
 
-    const res = await fetch("/api/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description, imageUrl, category, basePrice, variants }),
-    });
-
-    if (res.ok) {
-      setMsg("Позиция добавлена");
-      setTitle(""); setDescription(""); setImageUrl(""); setBasePrice(0);
-      router.refresh();
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setMsg(data.error ?? "Ошибка");
-    }
-  }
+  const pending = users.filter((u) => u.status === "PENDING");
 
   return (
-    <form onSubmit={submit} className="max-w-xl space-y-4">
-      <h1 className="text-2xl font-semibold">Новая позиция</h1>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Название" required className="w-full rounded-lg border px-3 py-2" />
-      <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Описание" rows={3} className="w-full rounded-lg border px-3 py-2" />
-      <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="URL картинки" className="w-full rounded-lg border px-3 py-2" />
-      <input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="Категория" className="w-full rounded-lg border px-3 py-2" />
-      <input type="number" value={basePrice} onChange={(e) => setBasePrice(Number(e.target.value))} placeholder="Базовая цена" required className="w-full rounded-lg border px-3 py-2" />
-      <textarea value={variantsText} onChange={(e) => setVariantsText(e.target.value)} rows={4} placeholder="Варианты, по одному в строке. Наценка: «Про +300»" className="w-full rounded-lg border px-3 py-2" />
-      <button className="rounded-lg bg-black px-5 py-2.5 text-white">Добавить</button>
-      {msg && <p className="text-sm text-gray-700">{msg}</p>}
-    </form>
+    <div className="min-h-screen bg-black">
+      <VaultHeader username={me.username} isAdmin />
+
+      <main className="mx-auto max-w-5xl px-4 py-10">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-neutral-500">
+          Служебный раздел
+        </p>
+        <h1 className="mt-2 text-xl font-semibold text-neutral-100">
+          Панель администрации
+        </h1>
+
+        <section className="mt-8">
+          <h2 className="border-b border-neutral-800 pb-2 text-xs uppercase tracking-wider text-neutral-400">
+            Заявки на доступ · {pending.length}
+          </h2>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-[10px] uppercase tracking-wider text-neutral-600">
+                <tr>
+                  <th className="py-2 pr-4">Discord</th>
+                  <th className="py-2 pr-4">ID</th>
+                  <th className="py-2 pr-4">Роль</th>
+                  <th className="py-2 pr-4">Статус</th>
+                  <th className="py-2">Действия</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-900">
+                {users.map((u) => (
+                  <AdminUserRow
+                    key={u.id}
+                    id={u.id}
+                    username={u.username}
+                    discordId={u.discordId}
+                    role={u.role}
+                    status={u.status}
+                    isSelf={u.id === me.id}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="mt-10">
+          <h2 className="border-b border-neutral-800 pb-2 text-xs uppercase tracking-wider text-neutral-400">
+            Журнал действий
+          </h2>
+          <ul className="mt-3 space-y-2 text-xs text-neutral-500">
+            {logs.length === 0 && <li>Записей нет.</li>}
+            {logs.map((l) => (
+              <li key={l.id} className="border-l border-neutral-800 pl-3">
+                <span className="text-neutral-400">{l.action}</span>
+                {l.target ? ` · ${l.target}` : ""} ·{" "}
+                {new Date(l.createdAt).toLocaleString("ru-RU")}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </main>
+    </div>
   );
 }
