@@ -1,6 +1,7 @@
-/* BLACK VAULT — выпадающие списки ролей в админке. Подключать ПОСЛЕ admin-roles.js. */
+/* BLACK VAULT - role dropdowns in admin panel. Load AFTER admin-roles.js. */
 (function(){
 "use strict";
+var LT=String.fromCharCode(60), GT=String.fromCharCode(62);
 var SB_URL="https://shbohipthoifdrcpmjtp.supabase.co";
 var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYm9oaXB0aG9pZmRyY3BtanRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2MTE5MTUsImV4cCI6MjExMTE4NzkxNX0.UxyoxuAZKviMC76bGA4NdpKzJIxdN9cK_AqLNfofqUo";
 var client=null;
@@ -17,7 +18,9 @@ function isTech(p){ return roleOf(p)==="tech"; }
 function isHead(p){ return roleOf(p)==="head"; }
 function canRoles(p){ var r=roleOf(p); return r==="tech"||r==="head"; }
 function canUsers(p){ var r=roleOf(p); return r==="tech"||r==="head"||r==="deputy"; }
-function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function esc(s){
+  return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
 function toast(t){ if(typeof window.toast==="function"){ try{ window.toast(t); return; }catch(e){} } console.log(t); }
 var S={profile:null,users:[],ready:false};
 
@@ -26,24 +29,24 @@ function roleSelect(u){
   ORDER.forEach(function(r){
     if(r==="tech" && !isTech(me)) return;
     if(r==="head" && !(isTech(me)||isHead(me))) return;
-    opts+='<option value="'+r+'"'+(r===cur?" selected":"")+">"+LABELS[r]+"</option>";
+    opts+=LT+"option value=\""+r+"\""+(r===cur?" selected":"")+GT+LABELS[r]+LT+"/option"+GT;
   });
-  return '<select class="role-select" data-role-for="'+esc(u.id)+'">'+opts+"</select>";
+  return LT+"select class=\"role-select\" data-role-for=\""+esc(u.id)+"\""+GT+opts+LT+"/select"+GT;
 }
 
 function renderUsers(){
   var box=document.getElementById("adminUsers");
   if(!box || !S.ready) return;
-  if(!canUsers(S.profile)){ box.innerHTML='<div class="admin-empty">Нет доступа</div>'; return; }
-  if(!S.users.length){ box.innerHTML='<div class="admin-empty">Пользователей нет</div>'; return; }
+  if(!canUsers(S.profile)){ box.innerHTML=LT+"div class=\"admin-empty\""+GT+"Нет доступа"+LT+"/div"+GT; return; }
+  if(!S.users.length){ box.innerHTML=LT+"div class=\"admin-empty\""+GT+"Пользователей нет"+LT+"/div"+GT; return; }
   box.innerHTML=S.users.map(function(u){
     var editable=canRoles(S.profile) && (isTech(S.profile)||roleOf(u)!=="tech");
     var actions=(editable?roleSelect(u):"")
-      + (u.status!=="approved" ? '<button data-approve="'+esc(u.id)+'">Одобрить</button>' : "")
-      + (u.status==="approved" ? '<button class="btn-ghost" data-block="'+esc(u.id)+'">Заблокировать</button>' : "");
-    return '<div class="admin-row"><div><strong>'+esc(u.nickname||u.email||"—")+"</strong>"
-      +'<div class="muted">'+esc(u.email||"")+" · "+esc(LABELS[roleOf(u)])+" · "+esc(u.status||"pending")+'</div></div>'
-      +'<div class="admin-actions">'+actions+'</div></div>';
+      + (u.status!=="approved" ? LT+"button data-approve=\""+esc(u.id)+"\""+GT+"Одобрить"+LT+"/button"+GT : "")
+      + (u.status==="approved" ? LT+"button class=\"btn-ghost\" data-block=\""+esc(u.id)+"\""+GT+"Заблокировать"+LT+"/button"+GT : "");
+    return LT+"div class=\"admin-row\""+GT+LT+"div"+GT+LT+"strong"+GT+esc(u.nickname||u.email||"—")+LT+"/strong"+GT
+      + LT+"div class=\"muted\""+GT+esc(u.email||"")+" · "+esc(LABELS[roleOf(u)])+" · "+esc(u.status||"pending")+LT+"/div"+GT+LT+"/div"+GT
+      + LT+"div class=\"admin-actions\""+GT+actions+LT+"/div"+GT+LT+"/div"+GT;
   }).join("");
   box.querySelectorAll("[data-role-for]").forEach(function(s){
     s.onchange=function(){ setRole(s.dataset.roleFor, s.value, s); };
@@ -117,16 +120,13 @@ function bind(){
     if(!S.ready) return;
     clearTimeout(t);
     t=setTimeout(function(){
-      var sel=box.querySelector(".role-select");
-      if(!sel) renderUsers();
+      if(!box.querySelector(".role-select")) renderUsers();
     },300);
   });
   mo.observe(box,{childList:true});
-  var btn=document.getElementById("adminRefresh");
-  if(btn) btn.onclick=refresh;
 }
 
-if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",function(){ setTimeout(bind,800); });
-else setTimeout(bind,800);
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",function(){ setTimeout(bind,900); });
+else setTimeout(bind,900);
 window.OKG_ROLES={refresh:refresh,setRole:setRole};
 })();
