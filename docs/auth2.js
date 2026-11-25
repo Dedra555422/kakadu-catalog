@@ -51,7 +51,7 @@ async function loadProfile() {
   currentProfile = error ? null : data;
 }
 
-function isAdmin() { return !!(currentProfile && currentProfile.role === 'admin'); }
+function isAdmin() { const r = currentProfile && currentProfile.role; return !!(r === 'tech' || r === 'head' || r === 'admin'); }
 function isApproved() { return !!(currentProfile && currentProfile.status === 'approved'); }
 
 function renderAuthUI() {
