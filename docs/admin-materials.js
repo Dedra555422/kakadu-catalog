@@ -1,10 +1,25 @@
-/* BLACK VAULT — материалы: единый обработчик формы + отрисовка сайта из БД.
-   Подключается ПОСЛЕДНИМ, после admin-roles.js, и перекрывает его addMat,
-   который падал с "Недостаточно прав" из-за пустого S.profile. */
+/* BLACK VAULT — материалы: форма добавления + отрисовка сайта из БД.
+   Подключается ПОСЛЕДНИМ. Перекрывает обработчики из auth2.js и admin-roles.js. */
 (function(){
 "use strict";
 
-function cl(){ return window.sb || null; }
+var SB_URL = "https://shbohipthoifdrcpmjtp.supabase.co";
+var SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYm9oaXB0aG9pZmRyY3BtanRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2MTE5MTUsImV4cCI6MjExMTE4NzkxNX0.UxyoxuAZKviMC76bGA4NdpKzJIxdN9cK_AqLNfofqUo";
+var client = null;
+
+/* sb в auth2.js объявлен через let и не попадает в window — создаём свой клиент */
+function cl(){
+  if(client) return client;
+  if(window.sb) return (client = window.sb);
+  try{
+    if(window.supabase && window.supabase.createClient){
+      client = window.supabase.createClient(SB_URL, SB_KEY);
+      return client;
+    }
+  }catch(e){ console.warn("supabase client:", e.message); }
+  return null;
+}
+
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
 function toast(t){ if(typeof window.toast === "function"){ try{ window.toast(t); return; }catch(e){} } console.log(t); }
 
@@ -105,20 +120,19 @@ function bind(){
   var f = document.getElementById("matForm");
   if(f && !f.__okgBound){
     f.__okgBound = 1;
-    // capture-фаза: перехватываем ДО обработчиков auth2.js и admin-roles.js
     f.addEventListener("submit", addMaterial, true);
     f.addEventListener("click", function(ev){
       var b = ev.target.closest && ev.target.closest('button[type="submit"]');
       if(b){ ev.preventDefault(); ev.stopPropagation(); addMaterial(); }
     }, true);
   }
-  // подменяем глобальные обработчики, которые ставили предыдущие скрипты
-  if(window.OKG_ADMIN) window.OKG_ADMIN.addMaterial = addMaterial;
-  if(window.OKG_ADMIN) window.OKG_ADMIN.deleteMaterial = delMaterial;
+  if(window.OKG_ADMIN){
+    window.OKG_ADMIN.addMaterial = addMaterial;
+    window.OKG_ADMIN.deleteMaterial = delMaterial;
+  }
   window.addMaterial = addMaterial;
   window.deleteMaterial = delMaterial;
 
-  // кнопки удаления в админке
   document.addEventListener("click", function(ev){
     var b = ev.target.closest && ev.target.closest("[data-delmat]");
     if(b){ ev.preventDefault(); ev.stopPropagation(); delMaterial(b.dataset.delmat); }
@@ -129,7 +143,7 @@ function bind(){
 
 if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind);
 else bind();
-setTimeout(bind, 500);
+setTimeout(bind, 800);
 
 window.OKG_MATERIALS = { add: addMaterial, del: delMaterial, reload: window.refreshMaterials, load: loadSiteMaterials, all: function(){ return siteMaterials; } };
 })();
