@@ -187,3 +187,18 @@ function init(){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 window.OKG_AUDIT={load:load,log:log,render:render,state:S,canSee:canSee,exportCsv:csv};
 })();
+
+/* Автозагрузка журнала: как только админка открыта и пользователь имеет доступ */
+(function(){
+  function tryLoad(){
+    var panel=document.getElementById("auditPanel");
+    if(!panel)return;
+    if(panel.closest("[hidden]"))return;
+    if(!canSee())return;
+    if(S.loaded)return;
+    load();
+  }
+  setInterval(tryLoad, 1500);
+  document.addEventListener("click", function(){ setTimeout(tryLoad, 400); });
+  setTimeout(tryLoad, 1200);
+})();
