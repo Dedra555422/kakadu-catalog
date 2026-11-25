@@ -2,8 +2,8 @@
    tech - техно-админ (супер), head - глава, deputy - зам, staff - сотрудник, user - нет доступа */
 (function(){
 "use strict";
-var L={tech:"Технический администратор",head:"Глава ОКГ",deputy:"Зам. главы ОКГ",staff:"Сотрудник ОКГ",user:"Пользователь"};
-var O=["tech","head","deputy","staff","user"];
+var L={tech:"Технический администратор",head:"Глава ОКГ",deputy:"Зам. главы ОКГ",senior_staff:"Старший сотрудник ОКГ",staff:"Сотрудник ОКГ",user:"Пользователь"};
+var O=["tech","head","deputy","senior_staff","staff","user"];
 function role(p){var r=(p&&p.role)||"user";if(r==="admin")r="head";return L[r]?r:"user";}
 function isTech(p){return role(p)==="tech";}
 function isHead(p){return role(p)==="head";}
