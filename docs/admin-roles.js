@@ -13,7 +13,7 @@ function canRoles(p){var r=role(p);return r==="tech"||r==="head";}
 function access(p){return !!p&&p.status==="approved"&&role(p)!=="user";}
 function lab(p){return L[role(p)];}
 window.OKG_ROLES={ROLE_LABELS:L,ROLE_ORDER:O,roleOf:role,isTech:isTech,isHead:isHead,canManageUsers:canUsers,canEditMaterials:canMat,canManageRoles:canRoles,hasAccess:access,label:lab};
-function cl(){return window.sb||null;}
+var _c=null;function cl(){if(_c)return _c;if(window.sb&&typeof window.sb.from==="function")return(_c=window.sb);try{if(window.supabase&&window.supabase.createClient){_c=window.supabase.createClient("https://shbohipthoifdrcpmjtp.supabase.co","eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYm9oaXB0aG9pZmRyY3BtanRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2MTE5MTUsImV4cCI6MjExMTE4NzkxNX0.UxyoxuAZKviMC76bGA4NdpKzJIxdN9cK_AqLNfofqUo");return _c;}}catch(e){}return null;}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 var S={profile:null,users:[],requests:[],materials:[]};
 function roleSel(u){var cur=role(u),me=S.profile,o="";O.forEach(function(r){if(r==="tech"&&!isTech(me))return;if(r==="head"&&!(isTech(me)||isHead(me)))return;o+='<option value="'+r+'"'+(r===cur?" selected":"")+">"+L[r]+"</option>";});return '<select class="role-select" data-role-for="'+esc(u.id)+'">'+o+"</select>";}
@@ -34,3 +34,4 @@ function init(){if(window.__okgAR)return;window.__okgAR=1;var f=document.getElem
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 window.OKG_ADMIN={open:openAdmin,loadUsers:loadUsers,loadRequests:loadReq,loadMaterials:loadMat,addMaterial:addMat,deleteMaterial:delMat,setProfileRole:setRole,setProfileStatus:setStatus,setRequestStatus:setReq,state:S};
 })();
+
