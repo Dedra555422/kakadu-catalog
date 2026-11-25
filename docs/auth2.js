@@ -367,8 +367,8 @@ window.addEventListener('DOMContentLoaded', function () {
   protectContent();
   initSupabase();
   loadSession();
-  const lf = document.getElementById('loginForm');
-  const rf = document.getElementById('regForm');
+  const lf = document.getElementById('authLoginForm');
+  const rf = document.getElementById('authRegForm');
   if (lf) lf.onsubmit = doLogin;
   if (rf) rf.onsubmit = doRegister;
   const mf = document.getElementById('matForm');
