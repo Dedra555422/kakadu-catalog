@@ -1,3 +1,28 @@
+
+
+/* ФИКС: модалка материалов. app.js при загрузке ставит инлайновый
+   display:none на #modal, из-за чего openModal не показывает окно. */
+document.addEventListener('DOMContentLoaded', function () {
+  var modal = document.getElementById('modal');
+  if (!modal) return;
+  modal.style.display = modal.hidden ? 'none' : '';
+
+  var origOpen = window.openModal;
+  window.openModal = function (item) {
+    if (typeof origOpen === 'function') origOpen(item);
+    modal.hidden = false;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+
+  var origClose = window.closeModal;
+  window.closeModal = function () {
+    if (typeof origClose === 'function') origClose();
+    modal.hidden = true;
+    modal.style.display = '';
+    document.body.style.overflow = '';
+  };
+});
 /* OKG - клиент Supabase, аккаунты, кабинет, админка, защита от копирования */
 const SUPABASE_URL = 'https://shbohipthoifdrcpmjtp.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYm9oaXB0aG9pZmRyY3BtanRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2MTE5MTUsImV4cCI6MjExMTE4NzkxNX0.UxyoxuAZKviMC76bGA4NdpKzJIxdN9cK_AqLNfofqUo';
