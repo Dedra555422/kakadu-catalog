@@ -34,4 +34,3 @@ function init(){if(window.__okgAR)return;window.__okgAR=1;var f=document.getElem
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 window.OKG_ADMIN={open:openAdmin,loadUsers:loadUsers,loadRequests:loadReq,loadMaterials:loadMat,addMaterial:addMat,deleteMaterial:delMat,setProfileRole:setRole,setProfileStatus:setStatus,setRequestStatus:setReq,state:S};
 })();
-
