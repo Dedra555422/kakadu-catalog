@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLACK VAULT — закрытый архив</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<header class="site-header">
+  <a class="brand" href="index.html">
+    <span class="brand-mark">BV</span>
+    <span class="brand-text">BLACK<em>VAULT</em></span>
+  </a>
+  <nav class="nav">
+    <a href="#special" class="nav-link">Специальное ОКГ</a>
+    <a href="#regular" class="nav-link">Обычное ОКГ</a>
+    <a href="#about" class="nav-link">О доступе</a>
+  </nav>
+  <div class="header-actions">
+    <button class="btn btn-ghost" id="themeToggle" title="Сменить тему">&#9680;</button>
+    <a class="btn btn-primary" href="#about">Запросить доступ</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Закрытый архив отдела</p>
+    <h1>Материалы, которые<br><span class="grad">не для всех</span></h1>
+    <p class="hero-sub">Доступ выдаётся по заявке и подтверждается администратором. Внутри — два раздела: специальное и обычное ОКГ.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-lg" href="#special">Открыть архив</a>
+      <a class="btn btn-outline btn-lg" href="#about">Как получить доступ</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="statTotal">0</b><span>материалов</span></div>
+      <div class="stat"><b>2</b><span>раздела</span></div>
+      <div class="stat"><b>24/7</b><span>доступ</span></div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">&#9906;</span>
+      <input id="search" type="search" placeholder="Поиск по названию, категории, описанию…" autocomplete="off">
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip is-active" data-filter="all">Все</button>
+      <button class="chip" data-filter="special">Специальное ОКГ</button>
+      <button class="chip" data-filter="regular">Обычное ОКГ</button>
+    </div>
+  </div>
+
+  <section class="section" id="special">
+    <div class="section-head">
+      <h2><span class="dot dot-special"></span>Специальное ОКГ</h2>
+      <span class="count" data-count="special">0</span>
+    </div>
+    <div class="grid" id="grid-special"></div>
+    <p class="empty" id="empty-special" hidden>Здесь пока нет материалов.</p>
+  </section>
+
+  <section class="section" id="regular">
+    <div class="section-head">
+      <h2><span class="dot dot-regular"></span>Обычное ОКГ</h2>
+      <span class="count" data-count="regular">0</span>
+    </div>
+    <div class="grid" id="grid-regular"></div>
+    <p class="empty" id="empty-regular" hidden>Здесь пока нет материалов.</p>
+  </section>
+
+  <section class="about" id="about">
+    <h2>Как получить доступ</h2>
+    <div class="steps">
+      <div class="step"><span class="step-num">1</span><h3>Заявка</h3><p>Войди через Discord — заявка создаётся автоматически и попадает к администратору.</p></div>
+      <div class="step"><span class="step-num">2</span><h3>Проверка</h3><p>Администратор рассматривает заявку и одобряет или отклоняет её.</p></div>
+      <div class="step"><span class="step-num">3</span><h3>Доступ</h3><p>После одобрения открываются оба раздела архива.</p></div>
+    </div>
+    <p class="note">Запрет копирования и водяные знаки не мешают скриншотам и переписыванию текста вручную. Доступ ограничивается организационно — статусом APPROVED.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>BLACK VAULT</span>
+  <span class="muted">Закрытый архив · доступ по заявке</span>
+</footer>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <button class="modal-close" data-close aria-label="Закрыть">&times;</button>
+    <span class="tag" id="mTag"></span>
+    <h3 id="mTitle"></h3>
+    <p id="mBody"></p>
+    <a class="btn btn-primary" id="mLink" target="_blank" rel="noopener">Открыть вложение</a>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
