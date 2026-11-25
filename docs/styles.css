@@ -175,3 +175,7 @@ h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em}
   .toolbar{top:57px}
   .about{padding:24px}
 }
+
+
+/* fix: hidden должен реально скрывать модалку */
+[hidden]{display:none !important}
