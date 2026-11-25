@@ -106,3 +106,31 @@ try {
 } catch (err) {}
 
 render();
+
+
+/* === Доступ к разделам по роли (senior_staff и др.) === */
+(function () {
+  function canSpecial() {
+    return !!(window.OKG_ROLES && window.OKG_ROLES.canViewSpecial && window.OKG_ROLES.canViewSpecial());
+  }
+  function canRegular() {
+    return !!(window.OKG_ROLES && window.OKG_ROLES.canViewRegular && window.OKG_ROLES.canViewRegular());
+  }
+  function apply() {
+    var sp = document.getElementById("special");
+    var rg = document.getElementById("regular");
+    var nav = document.querySelector(".nav-link[href=\"#special\"]");
+    var chip = document.querySelector("#chips .chip[data-filter=\"special\"]");
+    var s = canSpecial(), r = canRegular();
+    if (sp) sp.hidden = !s;
+    if (rg) rg.hidden = !r;
+    if (nav) nav.hidden = !s;
+    if (chip) chip.hidden = !s;
+    if (!s) { var g = document.getElementById("grid-special"); if (g) g.innerHTML = ""; }
+  }
+  window.addEventListener("okg:profile", apply);
+  window.addEventListener("storage", apply);
+  var n = 0;
+  var t = setInterval(function () { apply(); if (++n > 12) clearInterval(t); }, 600);
+  apply();
+})();
