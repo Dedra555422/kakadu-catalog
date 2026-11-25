@@ -18,10 +18,12 @@
     <a href="#special" class="nav-link">Специальное ОКГ</a>
     <a href="#regular" class="nav-link">Обычное ОКГ</a>
     <a href="#about" class="nav-link">О доступе</a>
+    <a href="#" class="nav-link" id="cabinetNavBtn" hidden>Кабинет</a>
+    <a href="#" class="nav-link" id="adminNavBtn" hidden>Админка</a>
   </nav>
   <div class="header-actions">
     <button class="btn btn-ghost" id="themeToggle" title="Сменить тему">&#9680;</button>
-    <a class="btn btn-primary" href="#about">Запросить доступ</a>
+    <div class="auth-area" id="authArea"></div>
   </div>
 </header>
 
@@ -76,11 +78,62 @@
   <section class="about" id="about">
     <h2>Как получить доступ</h2>
     <div class="steps">
-      <div class="step"><span class="step-num">1</span><h3>Заявка</h3><p>Войди через Discord — заявка создаётся автоматически и попадает к администратору.</p></div>
-      <div class="step"><span class="step-num">2</span><h3>Проверка</h3><p>Администратор рассматривает заявку и одобряет или отклоняет её.</p></div>
-      <div class="step"><span class="step-num">3</span><h3>Доступ</h3><p>После одобрения открываются оба раздела архива.</p></div>
+      <div class="step"><span class="step-num">1</span><h3>Регистрация</h3><p>Создай аккаунт по email и паролю прямо на сайте.</p></div>
+      <div class="step"><span class="step-num">2</span><h3>Заявка</h3><p>В кабинете напиши, зачем нужен доступ, и отправь заявку.</p></div>
+      <div class="step"><span class="step-num">3</span><h3>Доступ</h3><p>Администратор одобряет заявку — и открываются оба раздела архива.</p></div>
     </div>
     <p class="note">Запрет копирования и водяные знаки не мешают скриншотам и переписыванию текста вручную. Доступ ограничивается организационно — статусом APPROVED.</p>
+  </section>
+
+  <section class="cabinet" id="cabinet" hidden>
+    <div class="section-head">
+      <h2>Личный кабинет</h2>
+      <span class="status-pill wait" id="cabStatus">—</span>
+    </div>
+    <p class="muted">Аккаунт: <b id="cabEmail"></b></p>
+    <div class="panel">
+      <h3>Заявка на доступ</h3>
+      <textarea id="reqMessage" rows="3" placeholder="Коротко: кто вы и зачем нужен доступ"></textarea>
+      <button class="btn btn-primary" id="sendRequestBtn" onclick="sendRequest()">Отправить заявку</button>
+    </div>
+    <div class="panel">
+      <h3>Мои заявки</h3>
+      <div id="cabRequests"></div>
+    </div>
+  </section>
+
+  <section class="admin" id="admin" hidden>
+    <div class="section-head"><h2>Админ-панель</h2></div>
+
+    <div class="panel">
+      <h3>Заявки</h3>
+      <div id="adminRequests"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Пользователи</h3>
+      <div id="adminUsers"></div>
+    </div>
+
+    <div class="panel">
+      <h3>Добавить материал</h3>
+      <form id="matForm" class="mat-form">
+        <input id="matTitle" type="text" placeholder="Название" required>
+        <input id="matCategory" type="text" placeholder="Категория (например, Практика)">
+        <select id="matSection">
+          <option value="special">Специальное ОКГ</option>
+          <option value="general">Обычное ОКГ</option>
+        </select>
+        <textarea id="matDesc" rows="2" placeholder="Описание"></textarea>
+        <input id="matLink" type="url" placeholder="Ссылка на вложение (необязательно)">
+        <button class="btn btn-primary" type="submit">Добавить</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h3>Материалы</h3>
+      <div id="adminMaterials"></div>
+    </div>
   </section>
 </main>
 
@@ -100,6 +153,35 @@
   </div>
 </div>
 
+<div class="modal" id="authModal" hidden>
+  <div class="modal-backdrop" data-close-auth></div>
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <button class="modal-close" data-close-auth aria-label="Закрыть">&times;</button>
+    <h3 id="authModalTitle">Вход</h3>
+
+    <form id="authLoginForm">
+      <input id="loginEmail" type="email" placeholder="Email" required>
+      <input id="loginPass" type="password" placeholder="Пароль" required>
+      <button class="btn btn-primary" type="submit">Войти</button>
+      <p class="muted">Нет аккаунта? <a href="#" id="toRegister">Зарегистрироваться</a></p>
+    </form>
+
+    <form id="authRegForm" hidden>
+      <input id="regNick" type="text" placeholder="Никнейм">
+      <input id="regEmail" type="email" placeholder="Email" required>
+      <input id="regPass" type="password" placeholder="Пароль" required>
+      <button class="btn btn-primary" type="submit">Создать аккаунт</button>
+      <p class="muted">Уже есть аккаунт? <a href="#" id="toLogin">Войти</a></p>
+    </form>
+
+    <p class="auth-msg" id="authMsg"></p>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
+<script src="auth.js"></script>
 </body>
 </html>
