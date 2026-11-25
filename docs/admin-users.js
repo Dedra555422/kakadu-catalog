@@ -11,8 +11,8 @@ function cl(){
   try{ if(window.supabase && window.supabase.createClient){ client=window.supabase.createClient(SB_URL,SB_KEY); return client; } }catch(e){ console.warn("supabase:",e.message); }
   return null;
 }
-var LABELS={tech:"Технический администратор",head:"Глава ОКГ",deputy:"Зам. главы ОКГ",staff:"Сотрудник ОКГ",user:"Пользователь"};
-var ORDER=["tech","head","deputy","staff","user"];
+var LABELS={tech:"Технический администратор",head:"Глава ОКГ",deputy:"Зам. главы ОКГ",senior_staff:"Старший сотрудник ОКГ",staff:"Сотрудник ОКГ",user:"Пользователь"};
+var ORDER=["tech","head","deputy","senior_staff","staff","user"];
 function roleOf(p){ var r=(p&&p.role)||"user"; if(r==="admin") r="head"; return LABELS[r]?r:"user"; }
 function isTech(p){ return roleOf(p)==="tech"; }
 function isHead(p){ return roleOf(p)==="head"; }
