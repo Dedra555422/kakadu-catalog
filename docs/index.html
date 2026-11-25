@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>BLACK VAULT — закрытый архив</title>
-<link rel="stylesheet" href="styles.css?v=3">
+<link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
 <div class="bg-glow"></div>
@@ -103,33 +103,30 @@
   </section>
 
   <section class="admin" id="admin" hidden>
-    <div class="section-head"><h2>Админ-панель</h2></div>
-
+    <div class="section-head"><h2>Админ-панель</h2><span class="muted" id="adminWho"></span></div>
     <div class="panel">
       <h3>Заявки</h3>
       <div id="adminRequests"></div>
     </div>
-
     <div class="panel">
       <h3>Пользователи</h3>
       <div id="adminUsers"></div>
     </div>
-
     <div class="panel">
       <h3>Добавить материал</h3>
+      <p class="muted" id="matReadOnlyNote" style="display:none">Добавлять материалы могут только администраторы и главы ОКГ.</p>
       <form id="matForm" class="mat-form">
         <input id="matTitle" type="text" placeholder="Название" required>
         <input id="matCategory" type="text" placeholder="Категория (например, Практика)">
         <select id="matSection">
           <option value="special">Специальное ОКГ</option>
-          <option value="general">Обычное ОКГ</option>
+          <option value="regular">Обычное ОКГ</option>
         </select>
         <textarea id="matDesc" rows="2" placeholder="Описание"></textarea>
         <input id="matLink" type="url" placeholder="Ссылка на вложение (необязательно)">
         <button class="btn btn-primary" type="submit">Добавить</button>
       </form>
     </div>
-
     <div class="panel">
       <h3>Материалы</h3>
       <div id="adminMaterials"></div>
@@ -158,14 +155,12 @@
   <div class="modal-card" role="dialog" aria-modal="true">
     <button class="modal-close" data-close-auth aria-label="Закрыть">&times;</button>
     <h3 id="authModalTitle">Вход</h3>
-
     <form id="authLoginForm">
       <input id="loginEmail" type="email" placeholder="Email" required>
       <input id="loginPass" type="password" placeholder="Пароль" required>
       <button class="btn btn-primary" type="submit">Войти</button>
       <p class="muted">Нет аккаунта? <a href="#" id="toRegister">Зарегистрироваться</a></p>
     </form>
-
     <form id="authRegForm" hidden>
       <input id="regNick" type="text" placeholder="Никнейм">
       <input id="regEmail" type="email" placeholder="Email" required>
@@ -173,7 +168,6 @@
       <button class="btn btn-primary" type="submit">Создать аккаунт</button>
       <p class="muted">Уже есть аккаунт? <a href="#" id="toLogin">Войти</a></p>
     </form>
-
     <p class="auth-msg" id="authMsg"></p>
   </div>
 </div>
@@ -181,10 +175,11 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js?v=3"></script>
-  <script src="modal-fix.js?v=3"></script>
-<script src="auth2.js?v=3"></script>
-<script src="roles.js?v=3"></script>
-<script src="admin-roles.js?v=3"></script>
+<script src="app.js?v=4"></script>
+<script src="modal-fix.js?v=4"></script>
+<script src="auth2.js?v=4"></script>
+<script src="roles.js?v=4"></script>
+<script src="admin-roles.js?v=4"></script>
+<script src="admin-materials.js?v=4"></script>
 </body>
 </html>
