@@ -48,9 +48,12 @@
     canManageRoles: canManageRoles, isApproved: isApproved, hasAccess: hasAccess
   };
 
-  /* Скрытие разделов. Не трогаем данные и state — только видимость. */
+  /* Скрытие разделов: только видимость, содержимое не трогаем.
+     Пока профиль не загружен — ничего не скрываем, чтобы не мигнуть пустотой. */
   function apply() {
-    var s = canViewSpecial(), r = canViewRegular();
+    var p = profile();
+    if (!p) return;
+    var s = canViewSpecial(p), r = canViewRegular(p);
     var sp = document.getElementById('special');
     var rg = document.getElementById('regular');
     var nav = document.querySelector('.nav-link[href="#special"]');
@@ -61,12 +64,6 @@
     if (nav) nav.hidden = !s;
     if (chip) chip.hidden = !s;
     if (hero) hero.hidden = !s;
-    if (!s) {
-      var g = document.getElementById('grid-special');
-      if (g) g.innerHTML = '';
-      var c = document.querySelector('[data-count="special"]');
-      if (c) c.textContent = '0';
-    }
   }
   window.okgApplyRoleAccess = apply;
 
@@ -80,7 +77,7 @@
   var iv = setInterval(function () {
     tries++;
     if (profile()) { announce(); clearInterval(iv); }
-    if (tries > 40) clearInterval(iv);
+    if (tries > 60) clearInterval(iv);
   }, 500);
   setTimeout(announce, 1500);
 })();
