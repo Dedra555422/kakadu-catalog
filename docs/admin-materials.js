@@ -40,7 +40,7 @@ async function loadSiteMaterials(){
 }
 
 function paintSite(){
-  if(!siteMaterials) return;
+  if(!siteMaterials || !siteMaterials.length) return;
   var names = {special:"Специальное ОКГ", regular:"Обычное ОКГ"};
   ["special","regular"].forEach(function(sec){
     var grid = document.getElementById("grid-"+sec);
