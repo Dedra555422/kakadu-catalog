@@ -3,6 +3,69 @@ generator client {
 }
 
 datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  BLOCKED
+}
+
+enum Section {
+  SPECIAL_OKG
+  REGULAR_OKG
+}
+
+model User {
+  id        String   @id @default(cuid())
+  discordId String   @unique
+  username  String
+  avatar    String?
+  role      Role     @default(MEMBER)
+  status    Status   @default(PENDING)
+  createdAt DateTime @default(now())
+  lastLogin DateTime?
+  materials Material[]
+  logs      AdminLog[] @relation("AdminActor")
+}
+
+model Material {
+  id        String   @id @default(cuid())
+  section   Section
+  category  String   @default("general")
+  title     String
+  body      String
+  linkUrl   String?
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([section, category])
+}
+
+model AdminLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  actor     User     @relation("AdminActor", fields: [actorId], references: [id], onDelete: Cascade)
+  action    String
+  target    String?
+  createdAt DateTime @default(now())
+}
+
+  provider = "prisma-client-js"
+}
+
+datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
