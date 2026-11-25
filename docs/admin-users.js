@@ -1,4 +1,5 @@
-/* BLACK VAULT — управление ролями пользователей. Подключается ПОСЛЕ admin-roles.js и admin-materials.js. */
+/* BLACK VAULT — управление ролями пользователей. Подключается ПОСЛЕ admin-roles.js и admin-materials.js.
+   Перекрывает renderUsers из admin-roles.js через MutationObserver: тот рисует без профиля, мы — с профилем. */
 (function(){
 "use strict";
 var SB_URL="https://shbohipthoifdrcpmjtp.supabase.co";
@@ -14,17 +15,18 @@ var LABELS={tech:"Технический администратор",head:"Гл�
 var ORDER=["tech","head","deputy","staff","user"];
 function roleOf(p){ var r=(p&&p.role)||"user"; if(r==="admin") r="head"; return LABELS[r]?r:"user"; }
 function isTech(p){ return roleOf(p)==="tech"; }
+function isHead(p){ return roleOf(p)==="head"; }
 function canRoles(p){ var r=roleOf(p); return r==="tech"||r==="head"; }
 function canUsers(p){ var r=roleOf(p); return r==="tech"||r==="head"||r==="deputy"; }
 function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
 function toast(t){ if(typeof window.toast==="function"){ try{ window.toast(t); return; }catch(e){} } console.log(t); }
-var S={profile:null,users:[]};
+var S={profile:null,users:[],ready:false};
 
 function roleSelect(u){
   var cur=roleOf(u), me=S.profile, opts="";
   ORDER.forEach(function(r){
     if(r==="tech" && !isTech(me)) return;
-    if(r==="head" && !(isTech(me)||roleOf(me)==="head")) return;
+    if(r==="head" && !(isTech(me)||isHead(me))) return;
     opts+='<option value="'+r+'"'+(r===cur?" selected":"")+">"+LABELS[r]+"</option>";
   });
   return '<select class="role-select" data-role-for="'+esc(u.id)+'">'+opts+"</select>";
@@ -32,7 +34,7 @@ function roleSelect(u){
 
 function renderUsers(){
   var box=document.getElementById("adminUsers");
-  if(!box) return;
+  if(!box || !S.ready) return;
   if(!canUsers(S.profile)){ box.innerHTML='<div class="admin-empty">Нет доступа</div>'; return; }
   if(!S.users.length){ box.innerHTML='<div class="admin-empty">Пользователей нет</div>'; return; }
   box.innerHTML=S.users.map(function(u){
@@ -44,8 +46,8 @@ function renderUsers(){
       +'<div class="muted">'+esc(u.email||"")+" · "+esc(LABELS[roleOf(u)])+" · "+esc(u.status||"pending")+'</div></div>'
       +'<div class="admin-actions">'+actions+'</div></div>';
   }).join("");
-  box.querySelectorAll("[data-role-for]").forEach(function(sel){
-    sel.onchange=function(){ setRole(sel.dataset.roleFor, sel.value, sel); };
+  box.querySelectorAll("[data-role-for]").forEach(function(s){
+    s.onchange=function(){ setRole(s.dataset.roleFor, s.value, s); };
   });
   box.querySelectorAll("[data-approve]").forEach(function(b){
     b.onclick=function(){ setStatus(b.dataset.approve,"approved"); };
@@ -60,6 +62,7 @@ async function loadUsers(){
   var r=await c.from("profiles").select("*").order("created_at",{ascending:true});
   if(r.error){ console.warn("profiles:",r.error.message); return; }
   S.users=r.data||[];
+  S.ready=true;
   renderUsers();
 }
 
@@ -77,10 +80,11 @@ async function loadMe(){
 
 async function setRole(id, role, sel){
   var c=cl(); if(!c){ toast("Supabase не подключён"); return; }
-  if(!canRoles(S.profile)){ toast("Недостаточно прав"); if(sel) sel.value=roleOf(S.users.find(function(x){return x.id===id;})); return; }
-  if(role==="tech" && !isTech(S.profile)){ toast("Только техно-админ назначает эту роль"); if(sel) sel.value=roleOf(S.users.find(function(x){return x.id===id;})); return; }
+  var prev=roleOf(S.users.find(function(x){ return x.id===id; }));
+  if(!canRoles(S.profile)){ toast("Недостаточно прав"); if(sel) sel.value=prev; return; }
+  if(role==="tech" && !isTech(S.profile)){ toast("Только техно-админ назначает эту роль"); if(sel) sel.value=prev; return; }
   var x=await c.from("profiles").update({role:role}).eq("id",id);
-  if(x.error){ toast("Ошибка: "+x.error.message); return; }
+  if(x.error){ toast("Ошибка: "+x.error.message); if(sel) sel.value=prev; return; }
   var u=S.users.find(function(v){ return v.id===id; });
   if(u) u.role=role;
   renderUsers();
@@ -103,29 +107,43 @@ async function refresh(){
   await loadUsers();
 }
 
+function watch(){
+  var box=document.getElementById("adminUsers");
+  if(!box) return false;
+  if(box.__okgWatch) return true;
+  box.__okgWatch=1;
+  var busy=false;
+  var mo=new MutationObserver(function(){
+    if(!S.ready || busy) return;
+    // чужой рендер (без наших селектов) — перерисовываем своим
+    if(!box.querySelector("[data-role-for]") && canRoles(S.profile)){
+      busy=true;
+      renderUsers();
+      busy=false;
+    }
+  });
+  mo.observe(box,{childList:true});
+  return true;
+}
+
 function bind(){
   if(window.__okgUsers) return;
   window.__okgUsers=1;
   document.addEventListener("click", function(e){
     var b=e.target.closest && e.target.closest("[data-open-admin]");
-    if(b){ setTimeout(refresh, 700); }
+    if(b){ setTimeout(function(){ refresh(); setTimeout(watch,300); }, 800); }
   }, true);
+  var tries=0;
   var iv=setInterval(function(){
-    var box=document.getElementById("adminUsers");
-    if(box && !box.dataset.okgBound){
-      box.dataset.okgBound="1";
-      clearInterval(iv);
-      refresh();
-    }
-  }, 500);
-  setTimeout(function(){
-    var box=document.getElementById("adminUsers");
-    if(box && !box.dataset.okgBound){ box.dataset.okgBound="1"; refresh(); }
-  }, 2500);
+    tries++;
+    if(watch()){ clearInterval(iv); refresh(); }
+    if(tries>40) clearInterval(iv);
+  }, 400);
+  setTimeout(function(){ if(watch()) refresh(); }, 1500);
 }
 
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", bind);
 else bind();
 
-window.OKG_USERS={refresh:refresh, loadUsers:loadUsers, setRole:setRole, setStatus:setStatus, state:S, labels:LABELS, order:ORDER};
+window.OKG_USERS={refresh:refresh, loadUsers:loadUsers, setRole:setRole, setStatus:setStatus, state:S, labels:LABELS, order:ORDER, render:renderUsers};
 })();
