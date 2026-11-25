@@ -385,3 +385,11 @@ window.addEventListener('DOMContentLoaded', function () {
   const admBtn = document.getElementById('adminNavBtn');
   if (admBtn) admBtn.onclick = function (e) { e.preventDefault(); openAdmin(); };
 });
+
+/* ФИКС: гарантированная привязка обработчиков форм по фактическим ID */
+document.addEventListener('DOMContentLoaded', function () {
+  var lf = document.getElementById('authLoginForm') || document.getElementById('loginForm');
+  var rf = document.getElementById('authRegForm') || document.getElementById('regForm');
+  if (lf) lf.onsubmit = doLogin;
+  if (rf) rf.onsubmit = doRegister;
+});
