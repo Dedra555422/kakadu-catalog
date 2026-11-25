@@ -1,3 +1,9 @@
+/* модалка скрыта с самого начала, независимо от CSS */
+(function () {
+  var m = document.getElementById('modal');
+  if (m) m.style.display = 'none';
+})();
+
 /* BLACK VAULT — статический архив */
 const MATERIALS = [
   { id: 1, section: 'special', category: 'Методика', title: 'Специальное ОКГ: базовый протокол', body: 'Основной протокол работы со специальным ОКГ. Порядок действий, контрольные точки и типовые ошибки на каждом этапе.', link: '#' },
