@@ -1,8 +1,22 @@
 /* OKG audit. Журнал аудита в стиле Discord: читает "AdminLog", пишет события вручную. */
 (function(){
 "use strict";
+var SB_URL="https://shbohipthoifdrcpmjtp.supabase.co";
+var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNoYm9oaXB0aG9pZmRyY3BtanRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTU2MTE5MTUsImV4cCI6MjExMTE4NzkxNX0.UxyoxuAZKviMC76bGA4NdpKzJIxdN9cK_AqLNfofqUo";
+var client=null;
 var S={rows:[],profiles:{},filter:"",actor:"",loaded:false,loading:false};
-function cl(){return window.sb||null;}
+
+function cl(){
+ if(window.sb)return window.sb;
+ if(client)return client;
+ try{
+  if(window.supabase&&window.supabase.createClient){
+   client=window.supabase.createClient(SB_URL,SB_KEY);
+   return client;
+  }
+ }catch(e){console.warn("audit client:",e&&e.message);}
+ return null;
+}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 
 var ACT={
@@ -33,7 +47,7 @@ function kindOf(a){return KIND[a]||"update";}
 
 function canSee(){
  var R=window.OKG_ROLES; if(!R)return false;
- var p=window.OKG_ADMIN&&window.OKG_ADMIN.state&&window.OKG_ADMIN.state.profile;
+ var p=R.profile?R.profile():null;
  if(!p)return false;
  var r=R.roleOf(p); return r==="tech"||r==="head"||r==="deputy";
 }
@@ -50,7 +64,8 @@ async function log(action,target){
 
 async function load(){
  if(S.loading)return;
- var c=cl();if(!c)return;
+ var c=cl();
+ if(!c){console.warn("audit: no supabase client");return;}
  S.loading=true;
  try{
   var r=await c.from("AdminLog").select("*").order("createdAt",{ascending:false}).limit(300);
@@ -63,7 +78,8 @@ async function load(){
    if(!p.error)(p.data||[]).forEach(function(x){S.profiles[x.id]=x;});
   }
   S.loaded=true; fillActors(); render();
- }finally{S.loading=false;}
+ }catch(e){console.warn("audit load:",e&&e.message);}
+ finally{S.loading=false;}
 }
 
 function who(id){
@@ -185,7 +201,7 @@ function init(){
  document.addEventListener("click",function(e){
   var t=e.target; if(!t||!t.closest)return;
   var r=t.closest("[data-audit-refresh]");
-  if(r){e.preventDefault();load();return;}
+  if(r){e.preventDefault();S.loaded=false;load();return;}
   var x=t.closest("[data-audit-export]");
   if(x){e.preventDefault();if(canSee())csv();}
  });
@@ -197,7 +213,6 @@ function init(){
   var t=e.target;
   if(t&&t.id==="auditActor"){S.actor=t.value;render();}
  });
- // Автозагрузка: как только панель видима и есть права
  function tryLoad(){
   var panel=document.getElementById("auditPanel");
   if(!panel)return;
