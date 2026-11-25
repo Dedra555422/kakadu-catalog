@@ -175,6 +175,193 @@
 <div id="toast" class="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="sb-bridge.js?v=1"></script>
+<script src="app.js?v=4"></script>
+<script src="modal-fix.js?v=4"></script>
+<script src="auth2.js?v=4"></script>
+<script src="roles.js?v=4"></script>
+<script src="admin-roles.js?v=4"></script>
+<script src="admin-materials.js?v=5"></script>
+<script src="admin-users.js?v=4"></script><script src="audit.js?v=1"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLACK VAULT — закрытый архив</title>
+<link rel="stylesheet" href="styles.css?v=4">
+</head>
+<body>
+<div class="bg-glow"></div>
+
+<header class="site-header">
+  <a class="brand" href="index.html">
+    <span class="brand-mark">BV</span>
+    <span class="brand-text">BLACK<em>VAULT</em></span>
+  </a>
+  <nav class="nav">
+    <a href="#special" class="nav-link">Специальное ОКГ</a>
+    <a href="#regular" class="nav-link">Обычное ОКГ</a>
+    <a href="#about" class="nav-link">О доступе</a>
+    <a href="#" class="nav-link" id="cabinetNavBtn" hidden>Кабинет</a>
+    <a href="#" class="nav-link" id="adminNavBtn" hidden>Админка</a>
+  </nav>
+  <div class="header-actions">
+    <button class="btn btn-ghost" id="themeToggle" title="Сменить тему">&#9680;</button>
+    <div class="auth-area" id="authArea"></div>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <p class="eyebrow">Закрытый архив отдела</p>
+    <h1>Материалы, которые<br><span class="grad">не для всех</span></h1>
+    <p class="hero-sub">Доступ выдаётся по заявке и подтверждается администратором. Внутри — два раздела: специальное и обычное ОКГ.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-lg" href="#special">Открыть архив</a>
+      <a class="btn btn-outline btn-lg" href="#about">Как получить доступ</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="statTotal">0</b><span>материалов</span></div>
+      <div class="stat"><b>2</b><span>раздела</span></div>
+      <div class="stat"><b>24/7</b><span>доступ</span></div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon">&#9906;</span>
+      <input id="search" type="search" placeholder="Поиск по названию, категории, описанию…" autocomplete="off">
+    </div>
+    <div class="chips" id="chips">
+      <button class="chip is-active" data-filter="all">Все</button>
+      <button class="chip" data-filter="special">Специальное ОКГ</button>
+      <button class="chip" data-filter="regular">Обычное ОКГ</button>
+    </div>
+  </div>
+
+  <section class="section" id="special">
+    <div class="section-head">
+      <h2><span class="dot dot-special"></span>Специальное ОКГ</h2>
+      <span class="count" data-count="special">0</span>
+    </div>
+    <div class="grid" id="grid-special"></div>
+    <p class="empty" id="empty-special" hidden>Здесь пока нет материалов.</p>
+  </section>
+
+  <section class="section" id="regular">
+    <div class="section-head">
+      <h2><span class="dot dot-regular"></span>Обычное ОКГ</h2>
+      <span class="count" data-count="regular">0</span>
+    </div>
+    <div class="grid" id="grid-regular"></div>
+    <p class="empty" id="empty-regular" hidden>Здесь пока нет материалов.</p>
+  </section>
+
+  <section class="about" id="about">
+    <h2>Как получить доступ</h2>
+    <div class="steps">
+      <div class="step"><span class="step-num">1</span><h3>Регистрация</h3><p>Создай аккаунт по email и паролю прямо на сайте.</p></div>
+      <div class="step"><span class="step-num">2</span><h3>Заявка</h3><p>В кабинете напиши, зачем нужен доступ, и отправь заявку.</p></div>
+      <div class="step"><span class="step-num">3</span><h3>Доступ</h3><p>Администратор одобряет заявку — и открываются оба раздела архива.</p></div>
+    </div>
+    <p class="note">Запрет копирования и водяные знаки не мешают скриншотам и переписыванию текста вручную. Доступ ограничивается организационно — статусом APPROVED.</p>
+  </section>
+
+  <section class="cabinet" id="cabinet" hidden>
+    <div class="section-head">
+      <h2>Личный кабинет</h2>
+      <span class="status-pill wait" id="cabStatus">—</span>
+    </div>
+    <p class="muted">Аккаунт: <b id="cabEmail"></b></p>
+    <div class="panel">
+      <h3>Заявка на доступ</h3>
+      <textarea id="reqMessage" rows="3" placeholder="Коротко: кто вы и зачем нужен доступ"></textarea>
+      <button class="btn btn-primary" id="sendReqBtn" onclick="sendRequest()">Отправить заявку</button>
+    </div>
+    <div class="panel">
+      <h3>Мои заявки</h3>
+      <div id="cabRequests"></div>
+    </div>
+  </section>
+
+  <section class="admin" id="admin" hidden>
+    <div class="section-head"><h2>Админ-панель</h2><span class="muted" id="adminWho"></span></div>
+    <div class="panel">
+      <h3>Заявки</h3>
+      <div id="adminRequests"></div>
+    </div>
+    <div class="panel">
+      <h3>Пользователи</h3>
+      <div id="adminUsers"></div>
+    </div>
+    <div class="panel">
+      <h3>Добавить материал</h3>
+      <p class="muted" id="matReadOnlyNote" style="display:none">Добавлять материалы могут только администраторы и главы ОКГ.</p>
+      <form id="matForm" class="mat-form">
+        <input id="matTitle" type="text" placeholder="Название" required>
+        <input id="matCategory" type="text" placeholder="Категория (например, Практика)">
+        <select id="matSection">
+          <option value="special">Специальное ОКГ</option>
+          <option value="regular">Обычное ОКГ</option>
+        </select>
+        <textarea id="matDesc" rows="2" placeholder="Описание"></textarea>
+        <input id="matLink" type="url" placeholder="Ссылка на вложение (необязательно)">
+        <button class="btn btn-primary" type="submit">Добавить</button>
+      </form>
+    </div>
+    <div class="panel">
+      <h3>Материалы</h3>
+      <div id="adminMaterials"></div></div><div class="panel" id="auditPanel"><h3>Журнал аудита <span class="muted" id="auditCount" style="font-weight:400;font-size:13px"></span></h3><p class="muted">Кто и когда менял роли, статусы, заявки и материалы. Записи ведутся автоматически.</p><div class="audit-controls"><input id="auditSearch" type="search" placeholder="Поиск по действию, объекту, администратору…" autocomplete="off"><select id="auditActor"></select><button class="btn btn-ghost" type="button" data-audit-refresh>Обновить</button><button class="btn btn-ghost" type="button" data-audit-export>Экспорт CSV</button></div><div id="auditList"></div></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>BLACK VAULT</span>
+  <span class="muted">Закрытый архив · доступ по заявке</span>
+</footer>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <button class="modal-close" data-close aria-label="Закрыть">&times;</button>
+    <span class="tag" id="mTag"></span>
+    <h3 id="mTitle"></h3>
+    <p id="mBody"></p>
+    <a class="btn btn-primary" id="mLink" target="_blank" rel="noopener">Открыть вложение</a>
+  </div>
+</div>
+
+<div class="modal" id="authModal" hidden>
+  <div class="modal-backdrop" data-close-auth></div>
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <button class="modal-close" data-close-auth aria-label="Закрыть">&times;</button>
+    <h3 id="authModalTitle">Вход</h3>
+    <form id="authLoginForm">
+      <input id="loginEmail" type="email" placeholder="Email" required>
+      <input id="loginPass" type="password" placeholder="Пароль" required>
+      <button class="btn btn-primary" type="submit">Войти</button>
+      <p class="muted">Нет аккаунта? <a href="#" id="toRegister">Зарегистрироваться</a></p>
+    </form>
+    <form id="authRegForm" hidden>
+      <input id="regNick" type="text" placeholder="Никнейм">
+      <input id="regEmail" type="email" placeholder="Email" required>
+      <input id="regPass" type="password" placeholder="Пароль" required>
+      <button class="btn btn-primary" type="submit">Создать аккаунт</button>
+      <p class="muted">Уже есть аккаунт? <a href="#" id="toLogin">Войти</a></p>
+    </form>
+    <p class="auth-msg" id="authMsg"></p>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js?v=4"></script>
 <script src="modal-fix.js?v=4"></script>
 <script src="auth2.js?v=4"></script>
