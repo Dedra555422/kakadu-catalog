@@ -1,34 +1,39 @@
-/* OKG audit. Журнал аудита: читает таблицу "AdminLog", пишет события вручную. Подключать после auth2.js и admin-roles.js */
+/* OKG audit. Журнал аудита в стиле Discord: читает "AdminLog", пишет события вручную. */
 (function(){
 "use strict";
 var S={rows:[],profiles:{},filter:"",actor:"",loaded:false};
 function cl(){return window.sb||null;}
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 var ACT={
- "profiles.insert":"Создан профиль",
- "profiles.update":"Изменён профиль",
- "profiles.delete":"Удалён профиль",
- "role.changed":"Смена роли",
- "status.changed":"Смена статуса",
- "requests.insert":"Новая заявка",
- "requests.update":"Изменена заявка",
- "requests.delete":"Удалена заявка",
- "materials.insert":"Добавлен материал",
- "materials.update":"Изменён материал",
- "materials.delete":"Удалён материал",
- "auth.login":"Вход в систему",
- "auth.logout":"Выход из системы",
- "admin.open":"Открыта админ-панель",
- "audit.export":"Экспорт журнала"
+ "profiles.insert":"Создан профиль","profiles.update":"Изменён профиль","profiles.delete":"Удалён профиль",
+ "role.changed":"Смена роли","status.changed":"Смена статуса",
+ "requests.insert":"Новая заявка","requests.update":"Изменена заявка","requests.delete":"Удалена заявка",
+ "materials.insert":"Добавлен материал","materials.update":"Изменён материал","materials.delete":"Удалён материал",
+ "auth.login":"Вход в систему","auth.logout":"Выход из системы",
+ "admin.open":"Открыта админ-панель","audit.export":"Экспорт журнала"
+};
+var ICON={
+ "profiles.insert":"👤","profiles.update":"✏️","profiles.delete":"🗑️",
+ "role.changed":"🎭","status.changed":"🔖",
+ "requests.insert":"📨","requests.update":"📬","requests.delete":"📭",
+ "materials.insert":"📄","materials.update":"📝","materials.delete":"🗑️",
+ "auth.login":"🔓","auth.logout":"🔒","admin.open":"🛡️","audit.export":"📤"
+};
+var KIND={
+ "profiles.insert":"join","profiles.update":"update","profiles.delete":"delete",
+ "role.changed":"update","status.changed":"update",
+ "requests.insert":"join","requests.update":"update","requests.delete":"delete",
+ "materials.insert":"create","materials.update":"update","materials.delete":"delete",
+ "auth.login":"join","auth.logout":"leave","admin.open":"update","audit.export":"update"
 };
 function actLabel(a){return ACT[a]||a||"—";}
+function iconOf(a){return ICON[a]||"•";}
+function kindOf(a){return KIND[a]||"update";}
 function canSee(){
- var R=window.OKG_ROLES;
- if(!R)return false;
+ var R=window.OKG_ROLES; if(!R)return false;
  var p=window.OKG_ADMIN&&window.OKG_ADMIN.state&&window.OKG_ADMIN.state.profile;
  if(!p)return false;
- var r=R.roleOf(p);
- return r==="tech"||r==="head"||r==="deputy";
+ var r=R.roleOf(p); return r==="tech"||r==="head"||r==="deputy";
 }
 async function log(action,target){
  var c=cl();if(!c)return;
@@ -50,29 +55,50 @@ async function load(){
   var p=await c.from("profiles").select("id,email,nickname,role").in("id",keys);
   if(!p.error)(p.data||[]).forEach(function(x){S.profiles[x.id]=x;});
  }
- S.loaded=true;
- fillActors();
- render();
+ S.loaded=true; fillActors(); render();
 }
 function who(id){
- if(!id)return "система";
+ if(!id)return "Система";
  var p=S.profiles[id];
  if(!p)return id.slice(0,8)+"…";
  return p.nickname||p.email||id.slice(0,8)+"…";
 }
+function roleOf(id){var p=S.profiles[id];return p&&p.role?p.role:"user";}
+function initials(id){
+ var n=who(id);
+ var parts=n.replace(/@.*/,"").split(/[\s._-]+/).filter(Boolean);
+ if(parts.length>=2)return (parts[0][0]+parts[1][0]).toUpperCase();
+ return n.slice(0,2).toUpperCase();
+}
 function fmt(ts){
  if(!ts)return "";
- var d=new Date(ts);
- if(isNaN(d))return ts;
+ var d=new Date(ts); if(isNaN(d))return ts;
  function z(n){return n<10?"0"+n:""+n;}
- return z(d.getDate())+"."+z(d.getMonth()+1)+"."+d.getFullYear()+" "+z(d.getHours())+":"+z(d.getMinutes());
+ return z(d.getHours())+":"+z(d.getMinutes());
+}
+function dayKey(ts){
+ var d=new Date(ts); if(isNaN(d))return "—";
+ function z(n){return n<10?"0"+n:""+n;}
+ return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate());
+}
+function dayLabel(k){
+ if(k==="—")return "Неизвестная дата";
+ var now=new Date();
+ function z(n){return n<10?"0"+n:""+n;}
+ var today=now.getFullYear()+"-"+z(now.getMonth()+1)+"-"+z(now.getDate());
+ var y=new Date(now.getTime()-86400000);
+ var yest=y.getFullYear()+"-"+z(y.getMonth()+1)+"-"+z(y.getDate());
+ if(k===today)return "Сегодня";
+ if(k===yest)return "Вчера";
+ var p=k.split("-");
+ return p[2]+"."+p[1]+"."+p[0];
 }
 function visible(){
  var q=(S.filter||"").toLowerCase(), a=S.actor;
  return S.rows.filter(function(x){
   if(a&&x.actorId!==a)return false;
   if(!q)return true;
-  return (actLabel(x.action)+" "+x.action+" "+x.target+" "+who(x.actorId)).toLowerCase().indexOf(q)>=0;
+  return (actLabel(x.action)+" "+x.action+" "+(x.target||"")+" "+who(x.actorId)).toLowerCase().indexOf(q)>=0;
  });
 }
 function render(){
@@ -81,27 +107,38 @@ function render(){
  var cnt=document.getElementById("auditCount");
  if(cnt)cnt.textContent=rows.length+" из "+S.rows.length;
  if(!S.rows.length){
-  b.innerHTML='<div class="admin-empty">Записей пока нет. События появятся, как только кто-то изменит профиль, заявку или материал.</div>';
+  b.innerHTML='<div class="dc-empty"><div class="dc-empty-ico">🕓</div><div class="dc-empty-t">Записей пока нет</div><div class="dc-empty-s">События появятся, как только кто-то изменит профиль, заявку или материал.</div></div>';
   return;
  }
  if(!rows.length){
-  b.innerHTML='<div class="admin-empty">Ничего не найдено по фильтру.</div>';
+  b.innerHTML='<div class="dc-empty"><div class="dc-empty-ico">🔍</div><div class="dc-empty-t">Ничего не найдено</div><div class="dc-empty-s">Попробуйте изменить фильтр или поисковый запрос.</div></div>';
   return;
  }
- b.innerHTML=rows.map(function(x){
+ var out="", lastDay=null;
+ rows.forEach(function(x){
+  var k=dayKey(x.createdAt);
+  if(k!==lastDay){ out+='<div class="dc-day"><span>'+esc(dayLabel(k))+'</span></div>'; lastDay=k; }
   var t=esc(x.target||"");
-  if(t.length>90)t=t.slice(0,90)+"…";
-  return '<div class="admin-row audit-row">'+
-   '<div><strong>'+esc(actLabel(x.action))+'</strong>'+
-   '<div class="muted">'+esc(who(x.actorId))+(t?' · '+t:'')+'</div></div>'+
-   '<div class="audit-time muted">'+esc(fmt(x.createdAt))+'</div></div>';
- }).join("");
+  if(t.length>120)t=t.slice(0,120)+"…";
+  var kind=kindOf(x.action);
+  out+='<div class="dc-msg dc-'+kind+'">'
+    +'<div class="dc-ava dc-ava-'+esc(roleOf(x.actorId))+'">'+esc(initials(x.actorId))+'</div>'
+    +'<div class="dc-body">'
+      +'<div class="dc-head">'
+        +'<span class="dc-name">'+esc(who(x.actorId))+'</span>'
+        +'<span class="dc-badge dc-badge-'+esc(roleOf(x.actorId))+'">'+esc(roleOf(x.actorId))+'</span>'
+        +'<span class="dc-time">'+esc(fmt(x.createdAt))+'</span>'
+      +'</div>'
+      +'<div class="dc-text"><span class="dc-ico">'+iconOf(x.action)+'</span>'+esc(actLabel(x.action))+(t?' <span class="dc-target">'+t+'</span>':'')+'</div>'
+      +'<div class="dc-code">'+esc(x.action)+'</div>'
+    +'</div>'
+  +'</div>';
+ });
+ b.innerHTML=out;
 }
 function actors(){
  var seen={},out=[];
- S.rows.forEach(function(x){
-  if(x.actorId&&!seen[x.actorId]){seen[x.actorId]=1;out.push(x.actorId);}
- });
+ S.rows.forEach(function(x){ if(x.actorId&&!seen[x.actorId]){seen[x.actorId]=1;out.push(x.actorId);} });
  return out;
 }
 function fillActors(){
@@ -132,16 +169,14 @@ function csv(){
 function init(){
  if(window.__okgAudit)return;window.__okgAudit=1;
  document.addEventListener("click",function(e){
-  var t=e.target;
-  if(!t||!t.closest)return;
+  var t=e.target; if(!t||!t.closest)return;
   var r=t.closest("[data-audit-refresh]");
   if(r){e.preventDefault();load();return;}
   var x=t.closest("[data-audit-export]");
   if(x){e.preventDefault();if(canSee())csv();}
  });
  document.addEventListener("input",function(e){
-  var t=e.target;
-  if(!t||!t.id)return;
+  var t=e.target; if(!t||!t.id)return;
   if(t.id==="auditSearch"){S.filter=t.value;render();}
  });
  document.addEventListener("change",function(e){
