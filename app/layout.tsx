@@ -1,18 +1,19 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { SessionProvider } from "next-auth/react";
-import { Header } from "@/components/Header";
+import { auth } from "@/lib/auth";
 
-export const metadata: Metadata = { title: "Kakadu Каталог" };
+export const metadata: Metadata = {
+  title: "BLACK VAULT",
+  description: "Закрытый архив отдела",
+};
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const session = await auth();
   return (
     <html lang="ru">
-      <body className="min-h-screen bg-gray-50 text-gray-900">
-        <SessionProvider>
-          <Header />
-          <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
-        </SessionProvider>
+      <body className="bg-black text-neutral-200 antialiased">
+        <SessionProvider session={session}>{children}</SessionProvider>
       </body>
     </html>
   );
