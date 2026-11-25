@@ -179,3 +179,76 @@ h1,h2,h3{margin:0;line-height:1.15;letter-spacing:-.02em}
 
 /* fix: hidden должен реально скрывать модалку */
 [hidden]{display:none !important}
+
+
+/* ===== Аккаунты, кабинет, админка ===== */
+.auth-area { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.user-chip {
+  font-size: 13px; padding: 6px 12px; border-radius: 999px;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
+  color: inherit; white-space: nowrap;
+}
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+
+.cabinet, .admin {
+  margin: 48px 0;
+  padding: 28px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+}
+.cabinet h3, .admin h3 { margin: 0 0 12px; font-size: 16px; }
+.panel {
+  margin-top: 18px; padding: 18px;
+  border-radius: 14px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.08);
+}
+.panel textarea, .panel input, .panel select, .mat-form input, .mat-form textarea, .mat-form select,
+#authLoginForm input, #authRegForm input {
+  width: 100%; box-sizing: border-box;
+  margin-bottom: 10px; padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.35);
+  color: inherit; font: inherit;
+}
+.panel textarea { resize: vertical; }
+.status-pill {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.status-pill.ok { background: rgba(60,200,120,.18); color: #4ade80; }
+.status-pill.wait { background: rgba(250,200,60,.16); color: #fbbf24; }
+.status-pill.bad { background: rgba(250,80,80,.16); color: #f87171; }
+
+.req-row {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+  padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.08);
+  font-size: 14px;
+}
+.req-row:last-child { border-bottom: none; }
+
+.mat-form { display: grid; gap: 4px; }
+.mat-form button { justify-self: start; margin-top: 6px; }
+
+.auth-msg { min-height: 18px; font-size: 13px; color: #f87171; margin: 10px 0 0; }
+.auth-msg.ok { color: #4ade80; }
+
+#authLoginForm, #authRegForm { display: grid; gap: 2px; }
+#authLoginForm .btn, #authRegForm .btn { margin-top: 4px; }
+#authLoginForm .muted, #authRegForm .muted { font-size: 13px; margin: 8px 0 0; }
+#authLoginForm a, #authRegForm a { color: #a78bfa; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
+  padding: 12px 20px; border-radius: 12px;
+  background: #1b1b22; color: #fff;
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  opacity: 0; pointer-events: none; transition: all .25s ease;
+  z-index: 999; font-size: 14px; max-width: 90vw;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+[hidden] { display: none !important; }
